@@ -12,15 +12,12 @@ require('dotenv').config({path: '.env'});
 const account = web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
 kit.connection.addAccount(account.privateKey)
 
-var projectInstanceContract; 
-var stableToken;
-
-async function payOut(stableToken) {
+async function payOut(stableToken, projectInstanceContract) {
   var payOut = await projectInstanceContract.methods.payOut().send({from: account.address, feeCurrency: stableToken.address});
   console.log("Paying out from project");
 }
 
-async function printBalances(stableToken) {
+async function printBalances(stableToken, projectInstanceContract) {
   var balanceOfUser = (await stableToken.balanceOf(account.address)).toString();
   console.log("User's address: ", account.address);
   console.log("User's cUSD balance: ", balanceOfUser/1E18, " cUSD\n");
@@ -30,12 +27,13 @@ async function printBalances(stableToken) {
   console.log("Contract cUSD balance: ", balanceOfContract/1E18, " cUSD\n");
 }
 
-async function createProject(celoCrowdfundContract, projectGoal, stableToken) {
+async function createProject(celoCrowdfundContract, stableToken) {
+  var projectGoal = BigNumber(1E18);
   await celoCrowdfundContract.methods.startProject(stableToken.address, 'NODEJS SCRIPT', 'Alex is testing functions on nodejs rn', 'https://i.imgur.com/T9RAp1T.jpg', 5, projectGoal).send({from: account.address, feeCurrency: stableToken.address});
-  return "Created new project"; 
+  console.log("Created new project"); 
 }
 
-async function contribute(stableToken) {
+async function contribute(stableToken, projectInstanceContract) {
   var sendAmount = BigNumber(2E18); 
 
   // Call contribute() function with 2 cUSD
@@ -45,7 +43,7 @@ async function contribute(stableToken) {
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-async function initContract() {
+async function interact() {
   // Check the Celo network ID
   const networkId = await web3.eth.net.getId();
 
@@ -62,24 +60,18 @@ async function initContract() {
   console.log("Account address: ", account.address);
 
   // Get the cUSD ContractKit wrapper 
-  stableToken = await kit.contracts.getStableToken();
+  var stableToken = await kit.contracts.getStableToken();
 
-  var projectGoal = BigNumber(1E18);
-  var projectReceipt = await createProject(celoCrowdfundContract, projectGoal, stableToken);
-  console.log("Project created: ", projectReceipt);
+  await createProject(celoCrowdfundContract, stableToken);
 
   // Return projects inside the celo crowdfund contract
   var result = await celoCrowdfundContract.methods.returnProjects().call();
-  console.log("List of addressses for the projects created:", result);
-
-  // Loop through the existing projects and save the last created project instance
-  for (const projectAddress of result) {  
-    // Create a new project instance for each project
-    projectInstanceContract = new web3.eth.Contract(
-      Project.abi,
-      deployedNetwork && projectAddress
-    );
-  }
+  console.log("List of addressses for each of the projects created:", result);
+  
+  var projectInstanceContract = new web3.eth.Contract(
+    Project.abi, 
+    deployedNetwork && result[0]
+  );
   
   var projectGoal = BigNumber(5E18);
   var result = await stableToken.approve(projectInstanceContract._address, projectGoal).sendAndWaitForReceipt({from: account.address});
@@ -88,18 +80,18 @@ async function initContract() {
   await delay(5000);
   console.log("Done waiting\n");
 
-  await contribute(stableToken);
+  await contribute(stableToken, projectInstanceContract);
 
-  await printBalances(stableToken); 
+  await printBalances(stableToken, projectInstanceContract); 
 
   console.log("Waiting 5s...")
   await delay(5000);
   console.log("Done waiting\n");
 
-  await payOut(stableToken);
+  await payOut(stableToken, projectInstanceContract);
   console.log("After pay out: ");
-  await printBalances(stableToken); 
+  await printBalances(stableToken, projectInstanceContract); 
 }
 
 
-initContract();
+interact();
