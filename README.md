@@ -1,9 +1,12 @@
 # 3. Interacting with the Crowdfunding Smart Contracts
 
-
 Welcome to the last tutorial in this three part series on creating a crowdfunding smart contract on Celo. In this last part we're going to write Javascript code in order to interact with the smart contract we wrote and deployed in the previous two parts.
 
 Now that we have our smart contract on the Celo test network, it's time to use it!
+
+# Video    
+
+[![Interacting with a Crowdfunding Smart Contract in Celo](http://img.youtube.com/vi/C24prS3bk_I/0.jpg)](https://www.youtube.com/watch?v=C24prS3bk_I "Interacting with a Crowdfunding Smart Contract in Celo")  
 
 # Prerequisites
 
