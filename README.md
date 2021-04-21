@@ -1,34 +1,46 @@
+---
+description: >-
+  We will learn how to interact with a Smart Contract which facilitates crowdfunding. This is part three of a three part series.
+---
+
 # 3. Interacting with the Crowdfunding Smart Contracts
 
+## About the Authors
+
+The written tutorials were created by [Alex Reyes](https://www.linkedin.com/in/alexreyes-tech). Alex is a student \(BS, Computer Science\) and crypto enthusiast who's learning all about the world of web3 one day at a time and he's contributing to Web3 communities actively. He previously completed internships at Facebook and Microsoft.
+
+The videos were created by [Neo Cho](https://www.linkedin.com/in/neocho/). Neo is a student \(BS, Computer Science\) at the University of Central Florida. He enjoys learning about crypto, and is excited about the future of web3.
+
+## Introduction
 Welcome to the last tutorial in this three part series on creating a crowdfunding smart contract on Celo. In this last part we're going to write Javascript code in order to interact with the smart contract we wrote and deployed in the previous two parts.
 
 Now that we have our smart contract on the Celo test network, it's time to use it!
 
-# Video    
+## Video    
 
 [![Interacting with a Crowdfunding Smart Contract in Celo](http://img.youtube.com/vi/C24prS3bk_I/0.jpg)](https://www.youtube.com/watch?v=C24prS3bk_I "Interacting with a Crowdfunding Smart Contract in Celo")  
 
-# Prerequisites
+## Prerequisites
 
 You will need the smart contracts we wrote in part 1, and the deployments you made in part 2. Therefore, for the code in this tutorial to work you will need to have completed the prior two tutorials. 
 
-# Setup 
+## Setup 
 
-The first step is to create a Javascript file to write our smart contract interactions in. In the root of your ``celo-crowdfunding`` folder, create a file named ``interact.js``.  
+The first step is to create a Javascript file to write our smart contract interactions in. In the root of the ``celo-crowdfunding`` folder, create a file named ``interact.js``.  
 
 We will use the packages we installed via NPM in the first tutorial here. We will also need one additional module, BigNumber, in order to work with the large numbers the Celo blockchain uses. 
 
-In your terminal, run: 
+In the terminal, run: 
 
 ``npm install bignumber.js``
 
 And that's it for our setup!
 
-## Importing our modules
+### Importing our modules
 
 The first step for interacting with our smart contracts is importing the modules we'll need for our script. 
 
-At the top of your ``interact.js`` file, write the following: 
+At the top of the ``interact.js`` file, write the following: 
 
 ```
 const Web3 = require('web3');
@@ -79,7 +91,7 @@ async function interact()  {
 interact();
 ```
 
-Let's run this. In your terminal, type: ``node interact.js``. You should get something like the following: 
+Let's run this. In the terminal, type: ``node interact.js``. The result should be something like the following: 
 
 ![code](https://i.imgur.com/mtp0Dc3.png)
 
@@ -89,7 +101,7 @@ Great! So we've verified that the contract is getting imported correctly and our
 
 Next, comment out the ``console.log`` of the ``celoCrowdfundContract`` variable since we won't use it anymore. 
 
-The next step is to create a new ``Project``. Create a new function outside of ``interact()`` called ``createProject``: 
+The next step is to create a new ``Project``. Create a new function outside of ``interact()`` called ``createProject()``: 
 
 ```
 async function createProject(celoCrowdfundContract, stableToken)  {
@@ -103,7 +115,7 @@ This function takes in the ``celoCrowdfunding`` contract, and a ``stableToken`` 
 
 We create a number that's of size 1,000,000,000,000,000,000 or 1E18 because cUSD has a size of 18 decimals. Solidity doesn't have support for floating point numbers, so the workaround is to make really large numbers. 1E18 cUSD is equal to $1 cUSD. 
 
-Next, we call the ``startProject()`` method in our crowdfunding contract and pass in the parameters it requires. If you go back to the ``CeloCrowdfund.sol`` contract, you'll see the createProject() method takes in the following: 
+Next, we call the ``startProject()`` method in our crowdfunding contract and pass in the parameters it requires. If we go back to the ``CeloCrowdfund.sol`` contract, we'll see the createProject() method takes in the following: 
 
 ```
 function startProject(
@@ -118,7 +130,7 @@ function startProject(
 
 These are the parameters we supply when we call the function.
 
-Now that we have that, we'll create a stableToken variable which uses the ``ContractKit`` stabletoken wrapper in order to get a reference to the cUSD coin, and we will call the ``createProject`` helper function inside ``interact()``. We'll also return all the projects in our contract using the ``returnProjects()`` function in our ``CeloCrowdfund`` contract, to verify that it worked: 
+Now that we have that, we'll create a stableToken variable which uses the ``ContractKit`` stabletoken wrapper in order to get a reference to the cUSD coin, and we will call the ``createProject()`` helper function inside ``interact()``. We'll also return all the projects in our contract using the ``returnProjects()`` function in our ``CeloCrowdfund`` contract, to verify that it worked: 
 
 ```
   // Print wallet address so we can check it on the block explorer
@@ -135,7 +147,7 @@ Now that we have that, we'll create a stableToken variable which uses the ``Cont
   console.log("List of addressses for each of the projects created:", result);
 ```
 
-If you run the code, you should see the new project created. 
+After running the code, you should see the new project created. 
 
 ## Sending money to a project
 
@@ -143,7 +155,7 @@ Now that we've created a project, we'll need to send some money to it.
 
 Just like how we created a variable called ``celoCrowdfundContract`` to access our ``CeloCrowdfund`` contract, we'll need to create a variable to access the ``Project`` contract. 
 
-You can do this by writing the following: 
+To do this we can write the following: 
 
 ```
 var projectInstanceContract = new web3.eth.Contract(
@@ -250,7 +262,7 @@ async function payOut(stableToken, projectInstanceContract)  {
   console.log("Paying out from project");
 }
 ```
-The ``payOut`` function calls the ``payOut()`` function inside our ``Project`` smart contract. This will send all the funds sent back to the project creator. 
+The ``payOut()`` function calls the ``payOut()`` function inside our ``Project`` smart contract. This will send all the funds sent back to the project creator. 
 
 Finally, let's call the ``payOut()`` helper function inside our ``interact()`` function: 
 
@@ -268,7 +280,7 @@ Finally, let's call the ``payOut()`` helper function inside our ``interact()`` f
   await printBalances(stableToken, projectInstanceContract);
 ```
 
-We'll want to wait 5 seconds before printing just to make sure the payOut() transaction has been confirmed on the blockchain. 
+We'll want to wait 5 seconds before printing just to make sure the `payOut()` transaction has been confirmed on the blockchain. 
 
 Now let's run the code! In your terminal, type: 
 
@@ -276,18 +288,18 @@ Now let's run the code! In your terminal, type:
 node interact.js
 ```
 
-You should see something like the following output: 
+The output should look something like this: 
 
 ![output](https://i.imgur.com/P2uyevN.png)
 
-Awesome! As you can see from the terminal output, our script creates a new project, contributes 2 cUSD to it, waits 5 seconds, and then pays out from the project. You can see the flow of the 2 cUSD going from your wallet --> the contract --> back to your wallet. 
+Awesome! As we can see from the terminal output, our script creates a new project, contributes 2 cUSD to it, waits 5 seconds, and then pays out from the project. We can see the flow of the 2 cUSD going from the Celo wallet --> the contract --> back to the wallet. 
 
 It works!
 
 # Conclusion
 
-This three part series has shown you how to write a smart contract for Celo, deploy it, and then interact with the smart contract you created. 
+This three part series has shown you how to write a smart contract for Celo, deploy it, and then interact with the smart contract we created. 
 
 You can use this third tutorial as a jumping off point for interacting with any smart contract you make using Javascript. Whether you're creating a web dApp or a mobile dApp, you can use this code in order to interact with your contracts. 
 
-If you run into any problems along the way, feel free to ask questions on the Discord or view the source code [here](https://github.com/alexreyes/Celo-Crowdfunding-Tutorial-3)
+If you run into any problems, feel free to ask on the [Figment Learn Discord](https://discord.gg/f5YuEsQTAx). You can also view the source code [here](https://github.com/alexreyes/Celo-Crowdfunding-Tutorial-3)
