@@ -67,11 +67,11 @@ After the imports, write the following:
 ```
 // Get Celo account info
 
-const account = web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
+let account = web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
 kit.connection.addAccount(account.privateKey)
 ```
 
-The above code imports your private key from the ``.env`` file and puts it into the account variable. It also adds the Celo account to contractKit. 
+The above code imports your private key we set in the second tutorial from the ``.env`` file and puts it into the account variable. It also adds the Celo account to contractKit. 
 
 Next, let's create an async function where we will write our interactions with the smart contract:  
 
