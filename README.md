@@ -36,6 +36,8 @@ In the terminal, run:
 
 And that's it for our setup!
 
+![first step](https://i.imgur.com/Tn7z9oz.png)
+
 ### Importing our modules
 
 The first step for interacting with our smart contracts is importing the modules we'll need for our script. 
