@@ -839,7 +839,7 @@ We'll approve a large amount of cUSD for the contract as an example. To approve 
 ```javascript
   // Approve the project to spend up to 500 cUSD from wallet
   var approveAmount = BigNumber(500E18);
-  var result = await stableToken.approve(projectInstanceContract._address, projectAmount).sendAndWaitForReceipt({from: account.address});
+  await stableToken.approve(projectInstanceContract._address, approveAmount).sendAndWaitForReceipt({from: account.address});
 ```
 
 Great! Now we have approved our contract to receive 500 cUSD. The next step is to actually send some money.
@@ -891,7 +891,6 @@ The `printBalances()` function uses the `stableToken` variable's `balanceOf()` f
 Next, inside the `interact()` function just call the `printBalances()` function after `contribute()`:
 
 ```javascript
-await contribute(stableToken, projectInstanceContract, gasPrice);
 await printBalances(stableToken, projectInstanceContract);
 ```
 
