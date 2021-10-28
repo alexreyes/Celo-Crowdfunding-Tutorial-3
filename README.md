@@ -761,14 +761,14 @@ Next, comment out the `console.log` of the `celoCrowdfundContract` variable sinc
 The next step is to create a new `Project`. Create a new function outside of `interact()` called `createProject()`:
 
 ```javascript
-async function createProject(celoCrowdfundContract, stableToken)  {
+async function createProject(celoCrowdfundContract, stableToken, gasPrice)  {
   var projectGoal = BigNumber(1E18);
-  await celoCrowdfundContract.methods.startProject(stableToken.address, 'Test project', 'We are testing the create project function', 'https://i.imgur.com/Flfo4hJ.png',  5, projectGoal).send({from: account.address, feeCurrency: stableToken.address});
+  await celoCrowdfundContract.methods.startProject(stableToken.address, 'Test project', 'We are testing the create project function', 'https://i.imgur.com/Flfo4hJ.png',  5, projectGoal).send({from: account.address, feeCurrency: stableToken.address, gasPrice: gasPrice});
   console.log("Created new project");
 }
 ```
 
-This function takes in the `celoCrowdfunding` contract, and a `stableToken` variable. It then creates a `projectGoal` using `BigNumber`.
+This function takes in the `celoCrowdfunding`, `stableToken`, and `gasPrice` as parameters. It then creates a `projectGoal` using `BigNumber`.
 
 We create a number that's of size 1,000,000,000,000,000,000 or 1^18 because cUSD has a size of 18 decimals. Solidity doesn't have support for floating point numbers, so the workaround is to make really large numbers. 1^18 cUSD is equal to $1 cUSD.
 
@@ -787,7 +787,11 @@ function startProject(
 
 These are the parameters we supply when we call the function.
 
-Now that we have that, we'll create a stableToken variable which uses the `ContractKit` stabletoken wrapper in order to get a reference to the cUSD coin, and we will call the `createProject()` helper function inside `interact()`. We'll also return all the projects in our contract using the `returnProjects()` function in our `CeloCrowdfund` contract, to verify that it worked:
+Now that we have that, we will create a stableToken variable which uses the `ContractKit` stabletoken wrapper in order to get a reference to the cUSD coin. 
+
+We will also get the gas price to pass in to our functions. We'll set the gas higher than the recommended minimums in order to get our transactions confirmed faster. For a primer on gas fees in Celo, feel free to check out [this post](https://consensys.net/blog/metamask/what-is-a-gas-fee-on-ethereum/). 
+
+After getting those two variables, we will call the `createProject()` helper function inside `interact()`. We'll also return all the projects in our contract using the `returnProjects()` function in our `CeloCrowdfund` contract, to verify that it worked:
 
 ```javascript
   // Print wallet address so we can check it on the block explorer
@@ -796,7 +800,12 @@ Now that we have that, we'll create a stableToken variable which uses the `Contr
   // Get the cUSD ContractKit wrapper
   var stableToken = await kit.contracts.getStableToken();
 
-  await createProject(celoCrowdfundContract, stableToken);
+  // Get the gas price minimum and set the new gas price to be double
+  const gasPriceMinimumContract = await kit.contracts.getGasPriceMinimum()
+  const gasPriceMinimum = await gasPriceMinimumContract.getGasPriceMinimum(stableToken.address)
+  const gasPrice = Math.ceil(gasPriceMinimum * 2) // This should be much higher than the current average, so the transaction will confirm faster
+
+  await createProject(celoCrowdfundContract, stableToken, gasPrice);
 
   // Return projects inside the celo crowdfund contract
   var result = await celoCrowdfundContract.methods.returnProjects().call();
@@ -833,17 +842,16 @@ We'll approve a large amount of cUSD for the contract as an example. To approve 
   var result = await stableToken.approve(projectInstanceContract._address, projectAmount).sendAndWaitForReceipt({from: account.address});
 ```
 
-
 Great! Now we have approved our contract to receive 500 cUSD. The next step is to actually send some money.
 
 Outside of the `interact()` function, create a new function called `contribute()`:
 
 ```javascript
-async function contribute(stableToken, projectInstanceContract)  {
+async function contribute(stableToken, projectInstanceContract, gasPrice)  {
   var sendAmount = BigNumber(2E18);
 
   // Call contribute() function with 2 cUSD
-  await projectInstanceContract.methods.contribute(sendAmount).send({from: account.address, feeCurrency: stableToken.address});
+  await projectInstanceContract.methods.contribute(sendAmount).send({from: account.address, feeCurrency: stableToken.address, gasPrice: gasPrice});
 
   console.log("Contributed to the project\n");
 }
@@ -854,7 +862,7 @@ In the `contribute()` function, we create a variable called `sendAmount` which i
 Back in our `interact()` function, let's call the `contribute()` helper function we created:
 
 ```javascript
-  await contribute(stableToken, projectInstanceContract);
+  await contribute(stableToken, projectInstanceContract, gasPrice);
 ```
 
 ## Displaying our balances
@@ -883,7 +891,7 @@ The `printBalances()` function uses the `stableToken` variable's `balanceOf()` f
 Next, inside the `interact()` function just call the `printBalances()` function after `contribute()`:
 
 ```javascript
-await contribute(stableToken, projectInstanceContract);
+await contribute(stableToken, projectInstanceContract, gasPrice);
 await printBalances(stableToken, projectInstanceContract);
 ```
 
@@ -894,8 +902,8 @@ So far we're able to create a Project, and fund it. The final step is paying out
 Outside the `interact()` function, create a helper function called `payOut()`:
 
 ```javascript
-async function payOut(stableToken, projectInstanceContract)  {
-  var payOut = await projectInstanceContract.methods.payOut().send({from: account.address, feeCurrency: stableToken.address});
+async function payOut(stableToken, projectInstanceContract, gasPrice)  {
+  var payOut = await projectInstanceContract.methods.payOut().send({from: account.address, feeCurrency: stableToken.address, gasPrice: gasPrice});
   console.log("Paying out from project");
 }
 ```
@@ -905,10 +913,10 @@ The `payOut()` function calls the `payOut()` function inside our `Project` smart
 Finally, let's call the `payOut()` helper function inside our `interact()` function:
 
 ```javascript
-  await contribute(stableToken, projectInstanceContract);
+  await contribute(stableToken, projectInstanceContract, gasPrice);
   await printBalances(stableToken, projectInstanceContract);
 
-  await payOut(stableToken, projectInstanceContract);
+  await payOut(stableToken, projectInstanceContract, gasPrice);
 
   console.log("After pay out: ");
   await printBalances(stableToken, projectInstanceContract);
