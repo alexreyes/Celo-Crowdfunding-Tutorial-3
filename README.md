@@ -817,41 +817,24 @@ To do this we can write the following:
 ```javascript
 var projectInstanceContract = new web3.eth.Contract(
   Project.abi,
-  deployedNetwork && result[0]
+  deployedNetwork && result[result.length - 1] // Get the most recently deployed Project
 );
 ```
 
-This will create a variable to access the first Project \(`result[0]`\) created in the list of projects returned by the `returnProjects()` function earlier.
+This will create a variable to access the most recently created Project contract instance from the array returned by the `returnProjects()` function.
 
 Now that we can access our project, we'll need to do two things in order to send cUSD to the contract. Since cUSD follows the [ERC-20](https://ethereum.org/en/developers/docs/standards/tokens/erc-20/) standard, we'll need to approve sending cUSD to the contract prior to sending money. After it's approved, we can send cUSD to our contract.
 
-To approve 5 cUSD to be sent, write the following:
+We'll approve a large amount of cUSD for the contract as an example. To approve 500 cUSD to be sent, write the following:
 
 ```javascript
-  var projectGoal = BigNumber(5E18);
-  var result = await stableToken.approve(projectInstanceContract._address, projectGoal).sendAndWaitForReceipt({from: account.address});
+  // Approve the project to spend up to 500 cUSD from wallet
+  var approveAmount = BigNumber(500E18);
+  var result = await stableToken.approve(projectInstanceContract._address, projectAmount).sendAndWaitForReceipt({from: account.address});
 ```
 
-After the above `approve()`function runs, we will need to wait a couple of seconds to see the change on the blockchain before we send some cUSD.
 
-Create a helper function outside of the `interact()` function to cause a delay:
-
-```javascript
-const delay = ms => new Promise(res => setTimeout(res, ms));
-```
-
-Next, use `delay()` to wait 5 seconds in our `interact()` function:
-
-```javascript
-  var projectGoal = BigNumber(5E18);
-  var result = await stableToken.approve(projectInstanceContract._address, projectGoal).sendAndWaitForReceipt({from: account.address});
-
-  console.log("Waiting 5s...")
-  await delay(5000);
-  console.log("Done waiting\n");
-```
-
-Great! Now we have approved our contract to receive 5 cUSD. The next step is to actually send some money.
+Great! Now we have approved our contract to receive 500 cUSD. The next step is to actually send some money.
 
 Outside of the `interact()` function, create a new function called `contribute()`:
 
@@ -871,10 +854,6 @@ In the `contribute()` function, we create a variable called `sendAmount` which i
 Back in our `interact()` function, let's call the `contribute()` helper function we created:
 
 ```javascript
-  console.log("Waiting 5s...")
-  await delay(5000);
-  console.log("Done waiting\n");
-
   await contribute(stableToken, projectInstanceContract);
 ```
 
@@ -928,10 +907,6 @@ Finally, let's call the `payOut()` helper function inside our `interact()` funct
 ```javascript
   await contribute(stableToken, projectInstanceContract);
   await printBalances(stableToken, projectInstanceContract);
-
-  console.log("Waiting 5s...")
-  await delay(5000);
-  console.log("Done waiting\n");
 
   await payOut(stableToken, projectInstanceContract);
 
